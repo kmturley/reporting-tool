@@ -30,4 +30,4 @@ For a full list of commands use:
 
 ## Contact
 
-For more information please contact kim@bynd.com
+For more information please contact kmturley
