@@ -21,6 +21,7 @@
     "co-prompt": "^1.0.0",
     "commander": "^2.19.0",
     "json2csv": "^4.3.3",
+    "mkdirp": "^0.5.1",
     "request": "^2.88.0"
   }
 }

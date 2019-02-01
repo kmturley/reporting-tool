@@ -23,6 +23,10 @@ Basic usage:
 
     report generate
 
+Downloading raw data:
+
+    report download
+
 For a full list of commands use:
 
     report --help
