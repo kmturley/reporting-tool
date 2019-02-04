@@ -77,58 +77,51 @@ function file(path, data, callback) {
 
 program
   .arguments('<action>')
-  .option('-f, --filename <filename>', 'Filename')
-  .option('-t, --type <filename>', 'Type')
+  .option('-i, --id <date>', 'Project ID (YYYY-MM-DD)')
+  .option('-s, --start <date>', 'Start Date (YYYY-MM-DD)')
+  .option('-e, --end <date>', 'End Date (YYYY-MM-DD)')
   .action((action) => {
     co(function* () {
-      if (action === 'download') {
-        const filename = yield prompt('Filename: ');
-        const type = yield prompt('Type: ');
-        get(`${type}.json`).then((data) => {
-          const csv = convert(data);
-          file(`${filename}.csv`, csv, function(path) {
-            success(`Created: ${path}`);
-          });
-        }).catch(function (error) {
-          failure(error);
-        });
-      } else if (action === 'generate') {
+      const projectId = program.id ? program.id : yield prompt('Project ID: ');
+      const dateStart = program.start ? program.start : yield prompt('Start Date (YYYY-MM-DD): ');
+      const dateEnd = program.end ? program.end : yield prompt('End Date (YYYY-MM-DD): ');
+      if (action === 'generate') {
         console.log(`projects downloading...`);
-        get(`projects.json`).then((projects) => {
-          console.log(`projects downloaded!`);
-          const promises = [];
-          // test 10 projects
-          projects.forEach((project, projectIndex) => {
-            if (projectIndex < 10) {
-              promises.push(get(`projects/${project.id}/reports/money.json?start=2018-12-01&end=2018-12-08`));
-            }
-          });
-          // test a single project
-          // promises.push(get(`projects/14778/reports/money.json?start=2018-12-03&end=2018-12-07`));
-          Promise.all(promises).then(function(projects) {
-            mkdirp('reports', function(error) {
-              if (error) { return failure(error); }
-              projects.forEach((project) => {
-                if (project[0]) {
-                  const projectId = project[0]['project_id'];
-                  const report = reports.create(project);
-                  const csv = convert(report);
-                  file(`reports/project-${projectId}.csv`, csv, function(path) {
-                    console.log(`Created file: ${path}`);
-                  });
-                  // debug raw json data
-                  // file(`reports/project-${projectId}.json`, JSON.stringify(project, null, 2), function(path) {
-                  //   console.log(`Created file: ${path}`);
-                  // });
-                }
-              });
+        // get(`projects.json`).then((projects) => {
+        // console.log(`projects downloaded!`);
+        const promises = [];
+        // test 10 projects
+        // projects.forEach((project, projectIndex) => {
+        //   if (projectIndex < 10) {
+        //     promises.push(get(`projects/${project.id}/reports/money.json?start=${dateStart}&end=${dateStart}`));
+        //   }
+        // });
+        // test a single project
+        promises.push(get(`projects/${projectId}/reports/money.json?start=${dateStart}&end=${dateEnd}`));
+        Promise.all(promises).then(function(projects) {
+          mkdirp('reports', function(error) {
+            if (error) { return failure(error); }
+            projects.forEach((project) => {
+              if (project[0]) {
+                const projectId = project[0]['project_id'];
+                const report = reports.create(project);
+                const csv = convert(report);
+                file(`reports/project-${projectId}.csv`, csv, function(path) {
+                  success(`Created file: ${path}`);
+                });
+                // debug raw json data
+                // file(`reports/project-${projectId}.json`, JSON.stringify(project, null, 2), function(path) {
+                //   console.log(`Created file: ${path}`);
+                // });
+              }
             });
-          }).catch(function (error) {
-            failure(error);
           });
         }).catch(function (error) {
           failure(error);
         });
+        // }).catch(function (error) {
+        //   failure(error);
+        // });
       } else {
         failure(`Error command not recognized`);
       }

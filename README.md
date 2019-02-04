@@ -21,11 +21,7 @@ Then set your account details using:
 
 Basic usage:
 
-    report generate
-
-Downloading raw data:
-
-    report download
+    report generate --id 13964 --start 2018-12-01 --end 2018-12-08
 
 For a full list of commands use:
 
