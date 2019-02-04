@@ -40,7 +40,7 @@ function create(id, name, items) {
         const i = results.length + 2;
         const result = {};
         result[name] = listItem.name;
-        result[id] = listItem.id;
+        result[id] = id === 'user_id' ? `https://${api.getDomain()}/users/${listItem.id}/timetable` : `https://${api.getDomain()}/projects/${listItem.id}`;
         result['rate'] = null;
         result['cost'] = null;
         result['time_total'] = `=SUM(J${i}:Z${i})`;

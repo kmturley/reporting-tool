@@ -7,6 +7,10 @@ const domain = process.env.REPORT_URL || console.error('Please set your REPORT_U
 const email = process.env.REPORT_EMAIL || console.error('Please set your REPORT_EMAIL');
 const token = process.env.REPORT_TOKEN || console.error('Please set your REPORT_TOKEN');
 
+exports.getDomain = function() {
+  return domain;
+}
+
 exports.get = function(url) {
   console.log('api.get', url);
   return requestPromise.get({
