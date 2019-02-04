@@ -23,6 +23,6 @@
     "json2csv": "^4.3.3",
     "mkdirp": "^0.5.1",
     "request": "^2.88.0",
-    "rxjs": "^6.4.0"
+    "request-promise": "^4.2.2"
   }
 }

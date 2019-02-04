@@ -1,51 +1,70 @@
-exports.create = function(id, name, items) {
-  const users = {};
-  const results = [];
-  items.forEach((entry) => {
-    // console.log('entry', JSON.stringify(entry));
-    if (!users[entry[id]]) {
-      users[entry[id]] = {};
+const api = require('./api.js');
+
+function updateValue(parent, val, field, average) {
+  if (!parent[field]) {
+    parent[field] = val;
+  } else {
+    parent[field] += val;
+    if (average === true) {
+      parent[field] = parent[field] / 2;
     }
-    if (!users[entry[id]][entry.date]) {
-      users[entry[id]][entry.date] = {};
-    }
-    if (!users[entry[id]][entry.date][id]) {
-      users[entry[id]][entry.date][id] = entry[id];
-    }
-    if (!users[entry[id]][entry.date]['cost']) {
-      users[entry[id]][entry.date]['cost'] = entry.cost;
-    }
-    if (!users[entry[id]][entry.date]['rate']) {
-      users[entry[id]][entry.date]['rate'] = entry.rate;
-    }
-    if (!users[entry[id]][entry.date]['time']) {
-      users[entry[id]][entry.date]['time'] = entry.time;
-    } else {
-      users[entry[id]][entry.date]['time'] += entry.time;
-    }
-  });
-  Object.keys(users).forEach((userKey, userIndex) => {
-    const i = userIndex + 2;
-    const resultUser = {};
-    resultUser[name] = null;
-    resultUser[id] = null;
-    resultUser['rate'] = null;
-    resultUser['cost'] = null;
-    resultUser['time_total'] = `=SUM(I${i}:Z${i})`;
-    resultUser['rate_total'] = `=SUM(B${i}*D${i})`;
-    resultUser['cost_total'] = `=SUM(C${i}*D${i})`;
-    resultUser['margin'] = `=SUM(E${i}-F${i})`;
-    resultUser['margin_percentage'] = `=SUM((G${i}/E${i})*100)`;
-    Object.keys(users[userKey]).forEach((dateKey) => {
-      if (!resultUser[name]) {
-        resultUser[name] = users[userKey][dateKey][name];
-        resultUser[id] = users[userKey][dateKey][id];
-        resultUser['rate'] = users[userKey][dateKey]['rate'];
-        resultUser['cost'] = users[userKey][dateKey]['cost'];
-      }
-      resultUser[dateKey] = users[userKey][dateKey]['time'];
-    });
-    results.push(resultUser);
-  });
-  return results;
+  }
 }
+
+function create(id, name, items) {
+  return new Promise((resolve, reject) => {
+    const obj = {};
+    items.forEach((item) => {
+      if (!obj[item[id]]) {
+        obj[item[id]] = {};
+      }
+      if (!obj[item[id]][item.date]) {
+        obj[item[id]][item.date] = {};
+      }
+      updateValue(obj[item[id]][item.date], item[id], id);
+      updateValue(obj[item[id]][item.date], item.rate, 'rate', true);
+      updateValue(obj[item[id]][item.date], item.cost, 'cost', true);
+      updateValue(obj[item[id]][item.date], item.time, 'time');
+      updateValue(obj[item[id]][item.date], obj[item[id]][item.date]['rate'] * item.time, 'rate_total');
+      updateValue(obj[item[id]][item.date], obj[item[id]][item.date]['cost'] * item.cost, 'cost_total');
+    });
+    const results = [];
+    const promises = [];
+    Object.keys(obj).forEach(async (objKey, objIndex) => {
+      promises.push(api.get(id === 'user_id' ? `members/${objKey}.json` : `projects/${objKey}.json`));
+    });
+    Promise.all(promises).then((list) => {
+      list.forEach((listItem) => {
+        if (!listItem) { return; }
+        console.log(listItem.id, listItem.name);
+        const i = results.length + 2;
+        const result = {};
+        result[name] = listItem.name;
+        result[id] = listItem.id;
+        result['rate'] = null;
+        result['cost'] = null;
+        result['time_total'] = `=SUM(J${i}:Z${i})`;
+        result['rate_total'] = `=SUM(C${i}*E${i})`;
+        result['cost_total'] = `=SUM(D${i}*E${i})`;
+        result['margin'] = `=SUM(F${i}-G${i})`;
+        result['margin_percentage'] = `=SUM(H${i}/F${i})`;
+        Object.keys(obj[listItem.id]).forEach((dateKey) => {
+          if (!result['rate']) {
+            // use aggregated values instead of individual values
+            result['rate'] = obj[listItem.id][dateKey]['rate'];
+            result['cost'] = obj[listItem.id][dateKey]['cost'];
+            if (name === 'project_name') {
+              result['rate_total'] = obj[listItem.id][dateKey]['rate_total'];
+              result['cost_total'] = obj[listItem.id][dateKey]['cost_total'];
+            }
+          }
+          result[dateKey] = obj[listItem.id][dateKey]['time'];
+        });
+        results.push(result);
+      });
+      resolve(results);
+    });
+  });
+}
+
+exports.create = create;
