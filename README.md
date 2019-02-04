@@ -19,9 +19,13 @@ Then set your account details using:
 
 ## Usage
 
-Basic usage:
+Generate a report for an office:
 
-    report generate --id 13964 --start 2018-12-01 --end 2018-12-08
+    report office --id 300 --start 2018-12-01 --end 2018-12-08
+
+For a specific projects:
+
+    report project --id 13962 --start 2018-12-01 --end 2018-12-08
 
 For a full list of commands use:
 

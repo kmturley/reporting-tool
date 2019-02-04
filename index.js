@@ -8,6 +8,7 @@ const mkdirp = require('mkdirp');
 const prompt = require('co-prompt');
 const program = require('commander');
 const request = require('request');
+const { map } = require('rxjs/operators');
 
 const reports = require('./reports.js');
 
@@ -36,7 +37,7 @@ function get(url) {
         'X-User-Email': email,
         'X-User-Token': token
       }
-    }, function(error, response, body) {
+    }, (error, response, body) => {
       if (error) {
         return reject(error);
       }
@@ -55,7 +56,7 @@ function get(url) {
 }
 
 function convert(dataset) {
-  console.log('convert', dataset);
+  console.log('convert', dataset.length);
   var headers = Object.keys(dataset[0]);
   try {
     return json2csv(dataset, { headers });
@@ -66,7 +67,7 @@ function convert(dataset) {
 
 function file(path, data, callback) {
   console.log('file', path);
-  fs.writeFile(path, data, 'utf8', function (error) {
+  fs.writeFile(path, data, 'utf8', (error) => {
     if (error) {
       failure(error);
     } else{
@@ -77,51 +78,56 @@ function file(path, data, callback) {
 
 program
   .arguments('<action>')
-  .option('-i, --id <date>', 'Project ID (YYYY-MM-DD)')
+  .option('-i, --id <date>', 'ID')
   .option('-s, --start <date>', 'Start Date (YYYY-MM-DD)')
   .option('-e, --end <date>', 'End Date (YYYY-MM-DD)')
   .action((action) => {
     co(function* () {
-      const projectId = program.id ? program.id : yield prompt('Project ID: ');
+      const id = program.id ? program.id : yield prompt('ID: ');
       const dateStart = program.start ? program.start : yield prompt('Start Date (YYYY-MM-DD): ');
       const dateEnd = program.end ? program.end : yield prompt('End Date (YYYY-MM-DD): ');
-      if (action === 'generate') {
-        console.log(`projects downloading...`);
-        // get(`projects.json`).then((projects) => {
-        // console.log(`projects downloaded!`);
-        const promises = [];
-        // test 10 projects
-        // projects.forEach((project, projectIndex) => {
-        //   if (projectIndex < 10) {
-        //     promises.push(get(`projects/${project.id}/reports/money.json?start=${dateStart}&end=${dateStart}`));
-        //   }
-        // });
-        // test a single project
-        promises.push(get(`projects/${projectId}/reports/money.json?start=${dateStart}&end=${dateEnd}`));
-        Promise.all(promises).then(function(projects) {
-          mkdirp('reports', function(error) {
+      if (action === 'office') {
+        const projectList = {};
+        yield get(`projects.json`).then((projects) => {
+          projects.forEach((project) => {
+            projectList[project.id] = project;
+          });
+        });
+        get(`offices/${id}/reports/money.json?start=${dateStart}&end=${dateEnd}`).then((entries) => {
+          mkdirp('reports', (error) => {
             if (error) { return failure(error); }
-            projects.forEach((project) => {
-              if (project[0]) {
-                const projectId = project[0]['project_id'];
-                const report = reports.create(project);
-                const csv = convert(report);
-                file(`reports/project-${projectId}.csv`, csv, function(path) {
-                  success(`Created file: ${path}`);
-                });
-                // debug raw json data
-                // file(`reports/project-${projectId}.json`, JSON.stringify(project, null, 2), function(path) {
-                //   console.log(`Created file: ${path}`);
-                // });
-              }
+            const reportRows = reports.create('project_id', 'project_name', entries);
+            reportRows.forEach((reportRow) => {
+              reportRow['project_name'] = projectList[reportRow.project_id] ? projectList[reportRow.project_id].name : 'none';
+            });
+            const csv = convert(reportRows);
+            file(`reports/office-${id}.csv`, csv, (path) => {
+              success(`Created file: ${path}`);
             });
           });
-        }).catch(function (error) {
+        });
+      } else if (action === 'project') {
+        const memberList = {};
+        yield get(`members.json`).then((members) => {
+          members.forEach((member) => {
+            memberList[member.id] = member;
+          });
+        });
+        get(`projects/${id}/reports/money.json?start=${dateStart}&end=${dateEnd}`).then((project) => {
+          mkdirp('reports', (error) => {
+            if (error) { return failure(error); }
+            const reportRows = reports.create('user_id', 'user_name', project);
+            reportRows.forEach((reportRow) => {
+              reportRow['user_name'] = memberList[reportRow.user_id].name;
+            });
+            const csv = convert(reportRows);
+            file(`reports/project-${id}.csv`, csv, (path) => {
+              success(`Created file: ${path}`);
+            });
+          });
+        }).catch((error) => {
           failure(error);
         });
-        // }).catch(function (error) {
-        //   failure(error);
-        // });
       } else {
         failure(`Error command not recognized`);
       }
