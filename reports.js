@@ -1,70 +1,63 @@
 const api = require('./api.js');
 
-function updateValue(parent, val, field, average) {
-  if (!parent[field]) {
-    parent[field] = val;
-  } else {
-    parent[field] += val;
-    if (average === true) {
-      parent[field] = parent[field] / 2;
+exports.projectReport = function(selector, items, obj) {
+  if (!obj) { obj = {}; }
+  items.forEach((item) => {
+    let newItem = obj[item[selector]];
+    if (!newItem) {
+      newItem = obj[item[selector]] = {
+        name: 'None',
+        url: selector === 'user_id' ? `https://${api.getDomain()}/users/${item[selector]}/timetable`: `https://${api.getDomain()}/projects/${item[selector]}`,
+        planned_rate_cost: 0,
+        planned_rate_fees: 0,
+        planned_time: 0,
+        planned_cost: 0,
+        planned_fees: 0,
+        planned_margin: 0,
+        actual_rate_cost: 0,
+        actual_rate_fees: 0,
+        actual_time: 0,
+        actual_cost: 0,
+        actual_fees: 0,
+        actual_margin: 0,
+        complete_percent: 0,
+      }
     }
-  }
+    if (item.reportable_type === 'TimeLog') {
+      if (!newItem['actual_rate_cost']) {
+        newItem['actual_rate_cost'] = item.cost;
+      }
+      if (!newItem['actual_rate_fees']) {
+        newItem['actual_rate_fees'] = item.rate;
+      }
+      newItem['actual_time'] += item.value;
+    } else {
+      if (!newItem['planned_rate_cost']) {
+        newItem['planned_rate_cost'] = item.cost;
+      }
+      if (!newItem['planned_rate_fees']) {
+        newItem['planned_rate_fees'] = item.rate;
+      }
+      newItem['planned_time'] += item.value;
+    }
+  });
+  return obj;
 }
 
-function create(id, name, items) {
+exports.projectDetails = function(selector, obj) {
   return new Promise((resolve, reject) => {
-    const obj = {};
-    items.forEach((item) => {
-      if (!obj[item[id]]) {
-        obj[item[id]] = {};
-      }
-      if (!obj[item[id]][item.date]) {
-        obj[item[id]][item.date] = {};
-      }
-      updateValue(obj[item[id]][item.date], item[id], id);
-      updateValue(obj[item[id]][item.date], item.rate, 'rate', true);
-      updateValue(obj[item[id]][item.date], item.cost, 'cost', true);
-      updateValue(obj[item[id]][item.date], item.time, 'time');
-      updateValue(obj[item[id]][item.date], obj[item[id]][item.date]['rate'] * item.time, 'rate_total');
-      updateValue(obj[item[id]][item.date], obj[item[id]][item.date]['cost'] * item.cost, 'cost_total');
-    });
     const results = [];
     const promises = [];
-    Object.keys(obj).forEach(async (objKey, objIndex) => {
-      promises.push(api.get(id === 'user_id' ? `members/${objKey}.json` : `projects/${objKey}.json`));
+    Object.keys(obj).forEach(async (objKey) => {
+      promises.push(api.get(selector === 'user_id' ? `api/public/v1/members/${objKey}.json`: `api/public/v1/projects/${objKey}.json`, true));
     });
-    Promise.all(promises).then((list) => {
-      list.forEach((listItem) => {
-        if (!listItem) { return; }
-        console.log(listItem.id, listItem.name);
-        const i = results.length + 2;
-        const result = {};
-        result[name] = listItem.name;
-        result[id] = id === 'user_id' ? `https://${api.getDomain()}/users/${listItem.id}/timetable` : `https://${api.getDomain()}/projects/${listItem.id}`;
-        result['rate'] = null;
-        result['cost'] = null;
-        result['time_total'] = `=SUM(J${i}:Z${i})`;
-        result['rate_total'] = `=SUM(C${i}*E${i})`;
-        result['cost_total'] = `=SUM(D${i}*E${i})`;
-        result['margin'] = `=SUM(F${i}-G${i})`;
-        result['margin_percentage'] = `=SUM(H${i}/F${i})`;
-        Object.keys(obj[listItem.id]).forEach((dateKey) => {
-          if (!result['rate']) {
-            // use aggregated values instead of individual values
-            result['rate'] = obj[listItem.id][dateKey]['rate'];
-            result['cost'] = obj[listItem.id][dateKey]['cost'];
-            if (name === 'project_name') {
-              result['rate_total'] = obj[listItem.id][dateKey]['rate_total'];
-              result['cost_total'] = obj[listItem.id][dateKey]['cost_total'];
-            }
-          }
-          result[dateKey] = obj[listItem.id][dateKey]['time'];
-        });
-        results.push(result);
+    Promise.all(promises).then((members) => {
+      members.forEach((member) => {
+        if (!member) { return; }
+        obj[member.id]['name'] = member.name;
+        results.push(obj[member.id]);
       });
       resolve(results);
     });
   });
-}
-
-exports.create = create;
+};
