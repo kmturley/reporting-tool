@@ -23,11 +23,11 @@ Then create a credentials.json file containing your account details:
 
 Generate a report for an office:
 
-    report office --id 300
+    report office --id 300 --formulas true
 
 For a specific projects:
 
-    report project --id 13962
+    report project --id 13962 --formulas true
 
 For a full list of commands use:
 
