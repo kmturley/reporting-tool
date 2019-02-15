@@ -4,18 +4,18 @@ const fs = require('fs');
 const json2csv = require('json2csv').parse;
 const requestPromise = require('request-promise');
 
-const account = credentials.account || console.error('Please set your account in credentials.json');
+const domain = credentials.domain || console.error('Please set your domain in credentials.json');
 const email = credentials.email || console.error('Please set your email in credentials.json');
 const token = credentials.token || console.error('Please set your token in credentials.json');
 
-exports.getDomain = function(staging) {
-  return staging ? `${account}.staging.glassfactory.io` : `${account}.glassfactory.io`;
+exports.getDomain = function() {
+  return domain;
 }
 
-exports.get = function(url, staging) {
+exports.get = function(url) {
   console.log('api.get', url);
   return requestPromise.get({
-    uri: `https://${this.getDomain(staging)}/${url}`,
+    uri: `https://${this.getDomain()}/${url}`,
     headers: {
       'X-User-Email': email,
       'X-User-Token': token
@@ -26,10 +26,10 @@ exports.get = function(url, staging) {
   });
 };
 
-exports.post = function(url, params, staging) {
+exports.post = function(url, params) {
   console.log('api.post', url, params);
   return requestPromise.post({
-    uri: `https://${this.getDomain(staging)}/${url}`,
+    uri: `https://${this.getDomain()}/${url}`,
     headers: {
       'X-User-Email': email,
       'X-User-Token': token
