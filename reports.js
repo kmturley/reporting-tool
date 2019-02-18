@@ -8,7 +8,7 @@ exports.projectReport = function(selector, items, obj) {
     if (!newItem) {
       newItem = obj[item[selector]] = {
         name: 'None',
-        url: selector === 'user_id' ? `https://${api.getDomain()}/users/${item[selector]}/timetable`: `https://${api.getDomain()}/projects/${item[selector]}`,
+        url: selector === 'user_id' ? `${api.getDomain()}/users/${item[selector]}/timetable`: `${api.getDomain()}/projects/${item[selector]}`,
         planned_rate_cost: 0,
         planned_rate_fees: 0,
         planned_time: 0,
@@ -49,11 +49,11 @@ exports.projectDetails = function(selector, obj) {
   return new Promise((resolve, reject) => {
     const results = [];
     const promises = [];
-    let usersUrl = 'users';
-    let projectsUrl = 'projects';
-    if (credentials.staging === true) {
-      usersUrl = 'api/public/v1/members';
-      projectsUrl = 'api/public/v1/projects';
+    let usersUrl = `${api.getDomain()}/users`;
+    let projectsUrl = `${api.getDomain()}/projects`;
+    if (credentials.root === 'api/public/v1') {
+      usersUrl = `${api.getAPI()}/members`;
+      projectsUrl = `${api.getAPI()}/projects`;
     }
     Object.keys(obj).forEach(async (objKey) => {
       if (objKey && objKey !== 'null') {

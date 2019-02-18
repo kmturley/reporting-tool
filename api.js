@@ -7,15 +7,20 @@ const requestPromise = require('request-promise');
 const domain = credentials.domain || console.error('Please set your domain in credentials.json');
 const email = credentials.email || console.error('Please set your email in credentials.json');
 const token = credentials.token || console.error('Please set your token in credentials.json');
+const root = credentials.root || console.error('Please set your API root in credentials.json');
 
 exports.getDomain = function() {
-  return domain;
+  return `https://${domain}`;
+}
+
+exports.getAPI = function() {
+  return `https://${domain}/${root}`;
 }
 
 exports.get = function(url) {
   console.log('api.get', url);
   return requestPromise.get({
-    uri: `https://${this.getDomain()}/${url}`,
+    uri: url,
     headers: {
       'X-User-Email': email,
       'X-User-Token': token
@@ -27,9 +32,9 @@ exports.get = function(url) {
 };
 
 exports.post = function(url, params) {
-  console.log('api.post', url, params);
+  console.log('api.post', `${this.getAPI()}/${url}`, params);
   return requestPromise.post({
-    uri: `https://${this.getDomain()}/${url}`,
+    uri: `${this.getAPI()}/${url}`,
     headers: {
       'X-User-Email': email,
       'X-User-Token': token

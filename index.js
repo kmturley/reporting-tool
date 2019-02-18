@@ -40,7 +40,7 @@ function percent(amount, total) {
 }
 
 function processReport(type, selector, id, url, formulas) {
-  api.get(`api/v2/report_items?p=${id}`).then((report_items) => {
+  api.get(`${api.getDomain()}/api/v2/report_items?p=${id}`).then((report_items) => {
     const reportSummary = reports.projectReport(selector, report_items);
     reports.projectDetails(selector, reportSummary).then((projectDetails) => {
       const j = projectDetails.length + 1;
@@ -115,17 +115,17 @@ program
       formulas = formulas === 'true' ? true : false;
       mkdirp('reports', (error) => {
         if (action === 'office') {
-          api.get(`api/v2/projects.json`).then((projects) => {
+          api.get(`${api.getAPI()}/projects.json`).then((projects) => {
             const officeProjects = [];
             projects.filter((project) => {
               if (Number(project.office_id) === Number(id) && project.archived === false && project.closed === false) {
                 officeProjects.push(project.id);
               }
             });
-            processReport('office', 'project_id', officeProjects.join(','), `https://${api.getDomain()}/reports?office=${id}`, formulas);
+            processReport('office', 'project_id', officeProjects.join(','), `${api.getDomain()}/reports?office=${id}`, formulas);
           });
         } else if (action === 'project') {
-          processReport('project', 'user_id', id, `https://${api.getDomain()}/projects/${id}`, formulas);
+          processReport('project', 'user_id', id, `${api.getDomain()}/projects/${id}`, formulas);
         } else {
           failure(`Error command not recognized`);
         }
