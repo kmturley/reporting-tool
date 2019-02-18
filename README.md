@@ -15,7 +15,8 @@ Then create a credentials.json file containing your account details:
     {
       "account": "name",
       "email": "name@domain.com",
-      "token": "X"
+      "token": "X",
+      "staging": false
     }
 
 

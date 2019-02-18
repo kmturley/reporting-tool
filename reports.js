@@ -1,4 +1,5 @@
 const api = require('./api.js');
+const credentials = require('./credentials.json');
 
 exports.projectReport = function(selector, items, obj) {
   if (!obj) { obj = {}; }
@@ -48,8 +49,16 @@ exports.projectDetails = function(selector, obj) {
   return new Promise((resolve, reject) => {
     const results = [];
     const promises = [];
+    let usersUrl = 'users';
+    let projectsUrl = 'projects';
+    if (credentials.staging === true) {
+      usersUrl = 'api/public/v1/members';
+      projectsUrl = 'api/public/v1/projects';
+    }
     Object.keys(obj).forEach(async (objKey) => {
-      promises.push(api.get(selector === 'user_id' ? `api/public/v1/members/${objKey}.json`: `api/public/v1/projects/${objKey}.json`, true));
+      if (objKey && objKey !== 'null') {
+        promises.push(api.get(selector === 'user_id' ? `${usersUrl}/${objKey}.json`: `${projectsUrl}/${objKey}.json`, true));
+      }
     });
     Promise.all(promises).then((members) => {
       members.forEach((member) => {
