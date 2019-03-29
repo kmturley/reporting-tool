@@ -10,7 +10,7 @@ Reporting tool to automatically output a spreadsheet with financials using:
 
     npm install -g git+https://git@github.com/kmturley/reporting-tool.git
 
-Then create a credentials.json file containing your account details:
+Then create a /usr/local/bin/report/credentials.json file containing your account details:
 
     {
       "domain": "name.glassfactory.io",
