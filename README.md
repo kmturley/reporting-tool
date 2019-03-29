@@ -13,10 +13,10 @@ Reporting tool to automatically output a spreadsheet with financials using:
 Then create a credentials.json file containing your account details:
 
     {
-      "account": "name",
+      "domain": "name.glassfactory.io",
       "email": "name@domain.com",
       "token": "X",
-      "staging": false
+      "root": "api/v2"
     }
 
 
