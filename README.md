@@ -8,9 +8,15 @@ Reporting tool to automatically output a spreadsheet with financials using:
 
 ## Installation
 
+To install run the command:
+
     npm install -g git+https://git@github.com/kmturley/reporting-tool.git
 
-Then create a /usr/local/bin/report/credentials.json file containing your account details:
+Verify it's been installed by running:
+
+    report --version
+
+Create a credentials.json file containing your account details in the format:
 
     {
       "domain": "name.glassfactory.io",
@@ -18,6 +24,10 @@ Then create a /usr/local/bin/report/credentials.json file containing your accoun
       "token": "X",
       "root": "api/v2"
     }
+
+Now copy the file to the reporting tool directory using:
+
+    cp ./credentials.json /usr/local/lib/node_modules/reporting-tool
 
 
 ## Usage

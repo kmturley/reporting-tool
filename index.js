@@ -8,6 +8,7 @@ const program = require('commander');
 
 const api = require('./api.js');
 const reports = require('./reports.js');
+const package = require('./package.json');
 
 function success(msg) {
   console.log(`-------`);
@@ -105,6 +106,7 @@ function processReport(type, selector, id, url, formulas) {
 }
 
 program
+  .version(package.version)
   .arguments('<action>')
   .option('-i, --id <date>', 'ID')
   .option('-f, --formulas <boolean>', 'Formulas')
