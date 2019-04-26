@@ -1,6 +1,6 @@
 {
   "name": "reporting-tool",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Reporting tool to automatically output a spreadsheet with financials",
   "main": "index.js",
   "scripts": {
