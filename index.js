@@ -48,6 +48,8 @@ function processReport(type, selector, id, url, formulas) {
       // create summary row
       const rowSummary = {
         name: 'Summary',
+        id: '',
+        code: '',
         url: url,
         planned_rate_cost: formulas ? `=SUM(C2:C${j})` : 0,
         planned_rate_fees: formulas ? `=SUM(D2:D${j})` : 0,

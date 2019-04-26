@@ -8,6 +8,8 @@ exports.projectReport = function(selector, items, obj) {
     if (!newItem) {
       newItem = obj[item[selector]] = {
         name: 'None',
+        id: '',
+        code: '',
         url: selector === 'user_id' ? `${api.getDomain()}/users/${item[selector]}/timetable`: `${api.getDomain()}/projects/${item[selector]}`,
         planned_rate_cost: 0,
         planned_rate_fees: 0,
@@ -64,6 +66,9 @@ exports.projectDetails = function(selector, obj) {
       members.forEach((member) => {
         if (!member) { return; }
         obj[member.id]['name'] = member.name;
+        obj[member.id]['id'] = member.id;
+        obj[member.id]['code'] = member.sequential_id || member.sequental_id || '';
+        console.log(JSON.stringify(member));
         results.push(obj[member.id]);
       });
       resolve(results);
