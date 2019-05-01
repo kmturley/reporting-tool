@@ -10,6 +10,7 @@ exports.projectReport = function(selector, items, obj) {
         name: 'None',
         id: '',
         code: '',
+        job_id: '',
         url: selector === 'user_id' ? `${api.getDomain()}/users/${item[selector]}/timetable`: `${api.getDomain()}/projects/${item[selector]}`,
         planned_rate_cost: 0,
         planned_rate_fees: 0,
@@ -68,6 +69,7 @@ exports.projectDetails = function(selector, obj) {
         obj[member.id]['name'] = member.name;
         obj[member.id]['id'] = member.id;
         obj[member.id]['code'] = member.sequential_id || member.sequental_id || '';
+        obj[member.id]['job_id'] = member.job_id || '';
         console.log(JSON.stringify(member));
         results.push(obj[member.id]);
       });
