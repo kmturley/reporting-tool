@@ -29,6 +29,10 @@ Now copy the file to the reporting tool directory using:
 
     cp ./credentials.json /usr/local/lib/node_modules/reporting-tool
 
+Or if you use nvm:
+
+    cp ./credentials.json /Users/username/.nvm/versions/node/v8.9.4/lib/node_modules/reporting-tool
+
 
 ## Usage
 
